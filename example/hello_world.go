@@ -1,0 +1,49 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"runtime"
+
+	"github.com/haiyiyun/jnigi"
+)
+
+func main() {
+	if err := jnigi.LoadJVMLib(jnigi.AttemptToFindJVMLibPath()); err != nil {
+		log.Fatal(err)
+	}
+	runtime.LockOSThread()
+	jvm, env, err := jnigi.CreateJVM(jnigi.NewJVMInitArgs(false, true, jnigi.DEFAULT_VERSION, []string{"-Xcheck:jni"}))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hello, err := env.NewObject("java/lang/String", []byte("Hello "))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	world, err := env.NewObject("java/lang/String", []byte("World!"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	greeting := jnigi.NewObjectRef("java/lang/String")
+	err = hello.CallMethod(env, "concat", greeting, world)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var goGreeting []byte
+	err = greeting.CallMethod(env, "getBytes", &goGreeting)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Prints "Hello World!"
+	fmt.Printf("%s\n", goGreeting)
+
+	if err := jvm.Destroy(); err != nil {
+		log.Fatal(err)
+	}
+}
