@@ -1,5 +1,5 @@
 module github.com/haiyiyun/jnigi
 
-go 1.21
+go 1.24.5
 
 require golang.org/x/sys v0.34.0
